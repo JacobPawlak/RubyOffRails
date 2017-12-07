@@ -1,0 +1,24 @@
+  [1m[36m (0.1ms)[0m  [1mbegin transaction[0m
+-----------------------------------------------
+GamestatsControllerTest: test_should_get_search
+-----------------------------------------------
+Processing by GamestatsController#search as HTML
+  Rendered gamestats/search.html.erb within layouts/application (2.0ms)
+Completed 200 OK in 2109ms (Views: 2108.2ms | ActiveRecord: 0.0ms)
+  [1m[35m (0.1ms)[0m  rollback transaction
+  [1m[36m (0.1ms)[0m  [1mbegin transaction[0m
+----------------------------------------------
+GamestatsControllerTest: test_should_get_index
+----------------------------------------------
+Processing by GamestatsController#index as HTML
+  Rendered gamestats/index.html.erb within layouts/application (0.6ms)
+Completed 200 OK in 12ms (Views: 11.8ms | ActiveRecord: 0.0ms)
+  [1m[35m (0.1ms)[0m  rollback transaction
+  [1m[36m (0.1ms)[0m  [1mbegin transaction[0m
+-----------------------------------------------
+GamestatsControllerTest: test_should_get_create
+-----------------------------------------------
+Processing by GamestatsController#create as HTML
+  Rendered gamestats/create.html.erb within layouts/application (0.5ms)
+Completed 200 OK in 12ms (Views: 11.9ms | ActiveRecord: 0.0ms)
+  [1m[35m (0.1ms)[0m  rollback transaction
