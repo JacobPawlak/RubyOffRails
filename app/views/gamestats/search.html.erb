@@ -1,3 +1,6 @@
+<% require "json" %>
+
+<!-- Jacob Pawlak and Chelsea Kuball, CS316, December 9th 2017, Project 5 -->
 
 <head>
 	<title>Chelsea Kuball and Jacob Pawlak P5 CS316</title>
@@ -5,28 +8,105 @@
 
 <body>
 
-	<h1>Gamestats#search</h1>
+	<h3>Gamestats#search</h3>
 	<p>Find me in app/views/gamestats/search.html.erb</p>
-	<p style="font-size: 30px; color: black; text-align: center">CS316 Chelsea Kuball and Jacob Pawlak | Project 4</p>
+	<p style="font-size: 30px; color: black; text-align: center">CS316 Chelsea Kuball and Jacob Pawlak | Project 5</p>
 
+	<%
 
-	<form action="KuballPawlak_p4.php" method="get">
+	# we are opening the Sports.json file and converting it into a json string format for our seach page to use
+	sportsfile = open("public/Sports.json")
+	thecontents = sportsfile.read
+	sportsjson = JSON.parse(thecontents)
+
+	%>
+
+	<!-- this was a real doosy tbh, Rails has these build in form-building methods, which is cool if you have
+		a few hours to read the documentation for them... 
+		We want to send this over to index, because it does not say that we have to keep it on the same page -->
+	<%= form_tag("index" , method:"get") do %>
+
+		<!-- we did the labels in vanilla html because it was easier than messing with the Rails method for labels.. -->
 		<label for="title">Title</label>
-		<select name="title" id="title"></select><br>
-		<label for="results">Results</label>
-		<select name="results" id="results"></select><br>
-		<label for="searchterms">Search Term (Optional)</label>
-		<select name="searchterms" id="searchterms">
-		<option value="NA"></option>
-		</select><br>
-		<label for="highlight">Highlighter</label>
-		<select name="highlight" id="highlight">
-		<option value="all">All</option>
-		<option value="max">Max</option>
-		<option value="min">Min</option>
-		</select><br>
-		<input type="submit" name="submit" value="submit"><br>
-</form>
 
+			<%
+				#this is how we are going to fill in the titles, we loop over the Sports.json json string
+				# and fill our title_arr array with the titles in the json string
+				title_arr = Array.new
+                                sportsjson["sport"].each do |sport|
+                                        sport.each do |key, value|
+                                                if key == "title"
+							#if our key matches "title" and we havent seen it yet, we add
+							# it to the title_arr array
+	                                                if !title_arr.include?(value)
+                                                                title_arr.push(value)
+                                                        end
+                                                end
+                                        end
+                                end
+			%>
+
+			<!-- this is the part I struggled with the most, it took me forever to figure out that I could just
+				give options_for_select an array instead of haveing to use a bunch of complicated methods like
+				the documentation wanted me to do.. -->
+			<%= select_tag("title", options_for_select(title_arr) ) %>
+		&nbsp;
+		<br>
+		<!-- our results select field, populated the same way as our title field -->
+		<label for="results">Results</label>
+
+			<%
+				result_arr = Array.new
+                                sportsjson["sport"].each do |sport|
+                                        sport.each do |key, value|
+                                                if key == "results"
+							#this time we are checking to see if the year has been included in the result_arr array
+							# or not yet. If not, add it
+                                                        value.each do |res, file|
+                                                                if !result_arr.include?(res)
+                                                                        result_arr.push(res)
+                                                                end
+                                                        end
+                                                end
+                                        end
+                                end
+
+
+			%>
+
+			<!-- the select field for the year results. we are not showing the user the json files -->
+			<%= select_tag("results", options_for_select(result_arr) ) %>
+
+		&nbsp;
+		<br>
+
+		<!-- our label for the search terms, you know how it goes by now -->
+		<label for="searchterms">Search Term (optional)</label>
+
+			<%
+				#making a searchterms array to be filled with search values
+				search_arr = Array.new
+                                sportsjson["sport"].each do |sport|
+                                        sport.each do |key, value|
+                                                if key == "searchterms"
+                                                        value.each do |term|
+                                                                if !search_arr.include?(term)
+                                                                        search_arr.push(term)
+                                                                end
+                                                        end
+                                                end
+                                        end
+                                end
+
+			%>
+			<!-- the select dropdown for the search terms. -->
+			<%= select_tag("searchterms", options_for_select(search_arr), include_blank: true) %>
+
+		&nbsp;
+		<br>
+		<!-- the humble submit button -->
+                <input type="submit" name="submit" value="submit"><br>
+
+	<% end %>
 
 </body>

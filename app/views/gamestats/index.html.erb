@@ -1,25 +1,200 @@
-<h1>Gamestats#index</h1>
-<p>Find me in app/views/gamestats/index.html.erb</p>
+<% require "json" 
+   require "cgi"
+   require "uri" %>
+
+<!-- Jacob Pawlak and Chelsea Kuball, CS316, December 9th 2017, Project 5 -->
+
 <head>
-<title>Chelsea Kuball and Jacob Pawlak P5 CS316</title>
+	<title>Chelsea Kuball and Jacob Pawlak P5 CS316</title>
 </head>
+
 <body>
-<p style="font-size: 30px; color: black; text-align: center">CS316 Chelsea Kuball and Jacob Pawlak | Project 4</p>
+
+	<h3>Gamestats#search</h3>
+	<p>Find me in app/views/gamestats/index.html.erb </p>
+	<p style="font-size: 30px; color: black; text-align: center">CS316 Chelsea Kuball and Jacob Pawlak | Project 5</p>
+
+	<%
+	#open the Sports.json file and parse it into a json string
+	sportsfile = open("public/Sports.json")
+	thecontents = sportsfile.read
+	#puts thecontents
+	sportsjson = JSON.parse(thecontents)
+
+	%>
+	
+	<% 
+	
+	#we want to grab all of the parameters passed to us by GET
+	url_arr = params 
+
+	#making an array for the parameters so we can check to see if we have the three we need
+	pars = Array.new
+
+	#loop through the params and add them to the pars array
+	url_arr.each do |p, v|
+		pars.push(p)
+	end
+
+	#init a flag to indicate that we have all of the needed params from GET
+	all_set_flag = true
+
+	#If we are missing any of them, we set the flag to false
+	if( (!pars.include?("title")) || (!pars.include?("results")) )
+		all_set_flag = false
+	end
+
+	%>
+
+	<!-- we want to display an error message if the user did not pass all of the required params -->
+	<%= "<p style='color: red'>Error, You have entered the incorrect number or value of paramters</p>".html_safe if(!all_set_flag) %>
+
+	<%
+
+	#now we want to grab our title, result, and searchterm from the GET
+	title = url_arr["title"]
+	result = url_arr["results"]
+	searchterm = url_arr["searchterms"]
+
+	#we have a dummy result json path that starts at the public folder
+	result_file = "public/"
+	#init a flag to indicate if we found our title and matching json file
+	my_found = false
+
+	#we are now looping through Sports.json again to look for the pairing of title and result
+        sportsjson["sport"].each do |sport|
+		sport.each do |key, value|
+			if key == "title"
+				#if we found the right title, set the my_found flag to true
+				if value == title
+					my_found = true
+				end
+			end
+			#NOW, if we have the right title and the right file, we can add the file name to our
+			#  result file (currently 'public/')
+			if (key == "results" && my_found)
+				value.each do |res, file|
+					#here is where we set the file path 
+					if res == result
+						result_file += file
+					end
+				end
+				#we only want to do this one time, or atleast it should only happen a max of one time, so we
+				# reset the flag as to not trip it again
+				my_found = false 
+			end
+		end
+	end
+
+	%>
+
+	<% if result_file != "public/"
+		#if we have gotten to this line, then we found the right json file for the title|result pair
+		# we are going to open that file and convert to the json string
+		displayfile = open(result_file)
+	        displaycontents = displayfile.read
+	        displayjson = JSON.parse(displaycontents)
+
+	%>
+
+	<%	
+		#now we want to grab all the comments and store them into an array for passing over later
+		comments = displayjson["comments"]
+		#same with the all the games
+		games = displayjson["games"]
+		#init a count for total wins
+		total_wins = 0
+		#and just like we did in the php project, we want a dummy game to make the table colomn headers
+		a_game = games[0]
+		#so we make another array for that
+		column_titles = Array.new
+		#and fill it up
+		a_game.each do |header, data|
+			column_titles.push(header)	
+		end
+
+	%>
+	<!-- here we are making the table to display all of our gamestats -->
+	<table style='width:100%'>
+
+		<!-- we want to make the comments header section here -->
+		<tr>
+			<!-- we loop over the comments array we made earlier to print them all out -->
+			<% comments.each do |com|  %>
+				<td style='font-size: 30px; color:black;'>
+					<%= com %>
+				</td>
+			<% end %>
+		</tr>
+
+		<tr>
+			<!-- here is where we use a_game to make the headers for the columns -->
+			<% a_game.each do |head, data| %>
+
+				<% if(head == searchterm) %>
+				<!-- we want to bold the column header of it matches the searchterm -->
+                                        <td style="font-weight: bold; font-size: 25px">
+                                                <%= head %>
+                                        </td>
+
+                                <% end %>
+				<!-- if it does not match the search term, no harm no foul -->
+                                <% if(head != searchterm) %>
+                                        <td style="font-size: 25px;">
+                                                <%= head %>
+                                        </td>
+                                <% end %>
+			<% end %>
+		</tr>
+
+		<!-- now we are looping over the games in the game array-->
+		<% games.each do |game| %>
+		<!-- we want to make a new row for each game we have -->
+		<tr>
+			<% game.each do |head, data| %>
+				<!-- this is to count up all of our team's winnings, if the WinorLose stat is W, we add a count to 
+					total_wins -->
+				<% if(head == "WinorLose") %>
+					<% if(data == "W") %>
+						<% total_wins += 1 %>
+					<% end %>
+				<% end %>
+
+				<!-- again we are going to check if the header matches the search term, and if it does we are going to 
+					bold the data in that column -->
+
+				<% if(head == searchterm) %>
+					<td style="font-weight: bold; font-size: 20px">
+						<%= data %>
+					</td>
+
+				<% end %>
+
+				<% if(head != searchterm) %>
+					<td style="font-size: 17px;">
+						<%= data %>
+					</td>		
+				<% end %>
+			<% end %>
+		</tr>
+		<% end %> 
+
+	</table>
+
+	<!-- last but not least the win/loss summary and the win percentage, these are pretty simple to calulate -->
+
+	<p style="color: green; font-size: 23px;">Win percentage is: <%= (100 * total_wins.to_f / games.length.to_f) %> </p>
+	<p style="color: green; font-size: 23px;">Total Wins/Losses: <%= total_wins %> / <%= (games.length - total_wins) %> </p>
+	
+	<% end %>
+
+	<!-- our other error message, if we could not find a matching title|result pair. this is actually outside of the previous if statement
+		but will only run if the condition at the end of the line is met. Weird, i know -->
+	<%= "<p style='color: red'>Error, could not find a match to the title and result</p>".html_safe if( (result_file == "public/") && (all_set_flag) ) %>
+
+	<!-- just a helpful little link back to the search page -->
+	<a href="search">Back to the search page</a>
+
+
+
 </body>
-<form action="KuballPawlak_p4.php" method="get">
-<label for="title">Title</label>
-<select name="title" id="title"></select><br>
-<label for="results">Results</label>
-<select name="results" id="results"></select><br>
-<label for="searchterms">Search Term (Optional)</label>
-<select name="searchterms" id="searchterms">
-<option value="NA"></option>
-</select><br>
-<label for="highlight">Highlighter</label>
-<select name="highlight" id="highlight">
-<option value="all">All</option>
-<option value="max">Max</option>
-<option value="min">Min</option>
-</select><br>
-<input type="submit" name="submit" value="submit"><br>
-</form>
